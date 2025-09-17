@@ -5,11 +5,13 @@ class Session:
     def __init__(self, session_data: dict):
         
         self.data_paths = session_data
+        self.cache = {}
 
 
     def _repr_html_(self):
 
         html_text = ""
+        html_text += f"<strong>Mouse {self.mouse}, date {self.date}, session {self.session_type}</strong>"
         for data_name, data_path in self.data_paths.items():
             html_text += f"<div style='padding-left:10px'><strong>{data_name}</strong>: ...{str(data_path)[-50:]}</div>"
 
@@ -54,9 +56,27 @@ class Experiment:
                   if session_dict is None:
                       raise ValueError(f"No session called {session}. Possible mice are {day_dict.keys()}.")
                   else:
-                    return self.session_type(session_dict)
+                    return self.session_type(session_dict, mouse, day, session)
                   
+    def load_sessions(self, mouse, day):
 
+        session_list = []
+        mouse_dict = self.data_paths.get(mouse)
+        if mouse_dict is None:
+            raise ValueError(f"No mouse called {mouse}. Possible mice are {self.data_paths.keys()}.")
+        else:
+            day_dict = mouse_dict.get(day)
+            if day_dict is None:
+                raise ValueError(f"No day called {day}. Possible mice are {mouse_dict.keys()}.")
+            else:
+                for session in day_dict.keys():
+                    session_dict = day_dict[session]
+                    session_list.append(self.session_type(session_dict, mouse, day, session))
+
+        return session_list
+
+    def get_sessions(self, mouse, day):
+        return list(self.data_paths[mouse][day].keys())
                  
     
     def _repr_html_(self):
